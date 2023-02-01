@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time Chat App</title>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-200">
+    <main
+      class="bg-gray-100 h-screen w-screen flex items-center justify-center"
+    >
+      <section class="sm:w-1/3 w-11/12 space-y-4">
+        <div class="bg-white shadow-lg rounded py-4 px-4 sm:px-12 space-y-2">
+          <h1 class="font-bold text-3xl sm:text-4xl text-center">
+            Dhana's Chat App
+          </h1>
+          <p class="text-center text-gray-600">
+            This web is a Go programming language implementation of a real-time
+            chatroom using websockets.
+          </p>
+        </div>
+        <form class="bg-white shadow-lg rounded flex flex-col p-4 space-y-3">
+          <label for="name" class="font-semibold"> Your Name: </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            class="input-name rounded p-2 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <button
+          onclick="submitName()"
+          type="button"
+            class="bg-blue-500 px-4 py-2 rounded-lg text-white font-medium hover:bg-blue-600 active:bg-blue-500"
+          >
+            Start Chatting
+          </button>
+        </form>
+      </section>
+    </main>
+  </body>
+  <script>
+    const submitName = () => {
+      const name = document.querySelector(".input-name").value;
+      if (name) {
+        window.location.href = `/chat?username=${name}`;
+      }
+    };
+  </script>
+</html>
