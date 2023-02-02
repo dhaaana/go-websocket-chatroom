@@ -20,67 +20,132 @@
     </style>
   </head>
   <body class="bg-gray-200">
-    <main class='bg-gray-100 sm:py-8 py-4 h-screen w-screen flex items-center justify-center'>
-        <section class='sm:w-1/3 w-11/12 h-full flex flex-col gap-y-4'>
-          <div class='chat-container h-full overflow-y-auto flex flex-col gap-y-4'>
-            <p>
-              <span class='font-semibold'>Andi</span> connected
-            </p>
-            <div class='space-y-1'>
-              <p class='text-gray-700 text-sm'>
-                <span class='font-semibold'>Andi</span> says
-              </p>
-              <div class='rounded-lg bg-blue-500 text-white px-5 py-3'>
-                Tes 123
-              </div>
-            </div>
-            <div class='space-y-1'>
-              <p class='text-gray-700 text-sm'>
-                <span class='font-semibold'>Andi</span> says
-              </p>
-              <div class='rounded-lg bg-blue-500 text-white px-5 py-3'>
-                Tes 123
-              </div>
-            </div>
-            <div class='space-y-1'>
-              <p class='text-gray-700 text-sm text-end'>
-                <span class='font-semibold'>You</span> says
-              </p>
-              <div class='rounded-lg bg-green-500 text-end text-white px-5 py-3'>
-                Tes 123
-              </div>
-            </div>
-          </div>
-          <div class='bg-white shadow-lg rounded flex flex-col p-4 space-y-3'>
-            <p>
-              Hello, <span class='username font-semibold'></span>.
-            </p>
-            <div class='flex gap-x-3'>
-              <input
-                id='chat'
-                name='chat'
-                type='text'
-                class='w-full rounded p-2 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300'
-                placeholder='Say something...'
-                autocomplete='off'
-              />
-              <button class='bg-blue-500 px-4 py-2 rounded-lg text-white font-medium hover:bg-blue-600 active:bg-blue-500'>
-                Send
-              </button>
-            </div>
-          </div>
-        </section>
-      </main>
+    <main
+      class="bg-gray-100 sm:py-8 py-4 h-screen w-screen flex items-center justify-center"
+    >
+      <section class="sm:w-1/3 w-11/12 h-full flex flex-col gap-y-4">
+        <div
+          class="chat-container h-full overflow-y-auto flex flex-col gap-y-4"
+        ></div>
+        <div class="bg-white shadow-lg rounded flex flex-col p-4 space-y-3">
+          <p>Hello, <span class="username font-semibold"></span>.</p>
+          <form onsubmit="sendChat(event)" class="flex gap-x-3">
+            <input
+              id="chat"
+              name="chat"
+              type="text"
+              class="input-message w-full rounded p-2 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              placeholder="Say something..."
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              class="bg-blue-500 px-4 py-2 rounded-lg text-white font-medium hover:bg-blue-600 active:bg-blue-500"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
   </body>
-  <script>
+  <script type="text/javascript">
+    let webSockets = null;
+
+    const sendChat = (e) => {
+      const message = document.querySelector(".input-message").value;
+      e.preventDefault();
+      webSockets.send(
+        JSON.stringify({
+          Message: message,
+        })
+      );
+      writeChat(message, "You");
+      document.querySelector(".input-message").value = "";
+    };
+
+    const writeChat = (message, username) => {
+      const chatContainer = document.querySelector(".chat-container");
+      const bubbleContainer = document.createElement("div");
+      const bubble = document.createElement("div");
+      const p = document.createElement("p");
+
+      bubbleContainer.classList.add("space-y-1");
+      if (username !== "You") {
+        bubble.classList.add(
+          "rounded-lg",
+          "bg-blue-500",
+          "text-white",
+          "px-5",
+          "py-3"
+        );
+        p.classList.add("text-gray-700", "text-sm");
+      } else {
+        bubble.classList.add(
+          "rounded-lg",
+          "bg-green-500",
+          "text-white",
+          "px-5",
+          "py-3",
+          "text-end"
+        );
+        p.classList.add("text-gray-700", "text-sm", "text-end");
+      }
+
+      bubble.innerHTML = message;
+      p.innerHTML = `<span class='font-semibold'>${username}</span> says`;
+
+      bubbleContainer.appendChild(bubble);
+      bubbleContainer.appendChild(p);
+      chatContainer.appendChild(bubbleContainer);
+    };
+
     window.onload = () => {
-        const fullUrl = new URL(window.location.href)
-        const username = fullUrl.searchParams.get("username");
+      const fullUrl = new URL(window.location.href);
+      const originUrl = fullUrl.origin;
+      const originUrlWebsocket = originUrl.split("://")[1];
+      const username = fullUrl.searchParams.get("username") || "Anonim";
 
-        document.querySelector('.username').innerText = username;
+      document.querySelector(".username").innerText = username;
 
-        const chatContainer = document.querySelector('.chat-container');
-        
+      const chatContainer = document.querySelector(".chat-container");
+      webSockets = new WebSocket(
+        "ws://" + originUrlWebsocket + "/ws?username=" + username
+      );
+
+      webSockets.onopen = () => {
+        console.log("Connected to server");
+        writeNewUser("You");
+      };
+
+      webSockets.onmessage = (event) => {
+        let res = JSON.parse(event.data);
+        let messsage = "";
+        if (res.Type === "New User") {
+          writeNewUser(res.From);
+        } else if (res.Type === "Leave") {
+          writeLeavingUser(res.From);
+        } else {
+          writeChat(res.Message, res.From);
+        }
+      };
+
+      webSockets.onclose = () => {
+        console.log("Disconnected from server");
+        writeLeavingUser("You");
+      };
+
+      const writeNewUser = (username) => {
+        const p = document.createElement("p");
+        p.innerHTML = `<span class='font-semibold'>${username}</span> connected`;
+        chatContainer.appendChild(p);
+      };
+
+      const writeLeavingUser = (username) => {
+        const p = document.createElement("p");
+        p.innerHTML = `<span class='font-semibold'>${username}</span> disconnected`;
+        chatContainer.appendChild(p);
+      };
     };
   </script>
 </html>

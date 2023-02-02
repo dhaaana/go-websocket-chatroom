@@ -33,17 +33,20 @@
             chatroom using websockets.
           </p>
         </div>
-        <form class="bg-white shadow-lg rounded flex flex-col p-4 space-y-3">
+        <form
+          onsubmit="submitName(event)"
+          class="bg-white shadow-lg rounded flex flex-col p-4 space-y-3"
+        >
           <label for="name" class="font-semibold"> Your Name: </label>
           <input
             id="name"
             name="name"
             type="text"
             class="input-name rounded p-2 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            required
           />
           <button
-          onclick="submitName()"
-          type="button"
+            type="submit"
             class="bg-blue-500 px-4 py-2 rounded-lg text-white font-medium hover:bg-blue-600 active:bg-blue-500"
           >
             Start Chatting
@@ -53,7 +56,8 @@
     </main>
   </body>
   <script>
-    const submitName = () => {
+    const submitName = (e) => {
+      e.preventDefault();
       const name = document.querySelector(".input-name").value;
       if (name) {
         window.location.href = `/chat?username=${name}`;
