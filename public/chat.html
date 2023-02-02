@@ -110,7 +110,8 @@
 
       const chatContainer = document.querySelector(".chat-container");
       webSockets = new WebSocket(
-        "ws://" + originUrlWebsocket + "/ws?username=" + username
+        // Change into "ws://" on local
+        "wss://" + originUrlWebsocket + "/ws?username=" + username
       );
 
       webSockets.onopen = () => {
